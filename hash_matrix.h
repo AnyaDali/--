@@ -30,30 +30,12 @@ protected:
 
     std::size_t __get_index_vector(int y, int x) const { return static_cast<std::size_t>(y * width + x); }
 
-public:
-    class iterator : public std::vector<value_type, allocator_type>::iterator
+        // ИЗМЕНИТЬ
+    point_vertex *__find(const std::pair<int, int> &point) const
     {
-    };
-    class const_iterator : public std::vector<value_type, allocator_type>::const_iterator
-    {
-    };
 
-    auto begin() { return _vecPtr.begin(); }
-
-    auto end() { return _vecPtr.end(); }
-
-    hash_matrix(size_type height, size_type width) : height(height), width(width)
-    {
-        _vecPtr.resize(height * width, nullptr);
-    }
-
-    std::pair<size_type, size_type> get_size() const { return {height, width}; }
-
-    // ИЗМЕНИТЬ
-    point_vertex *find(const std::pair<int, int> &point) const
-    {
-        auto [y, x] = __tranform_coord(point);
-        std::size_t ind = __get_index_vector(y, x);
+        auto p = __tranform_coord(point);
+        std::size_t ind = __get_index_vector(p.first, p.second);
         if (_vecPtr[ind] == nullptr)
         {
             return nullptr;
@@ -69,10 +51,31 @@ public:
         return nullptr;
     }
 
+public:
+    class iterator : public std::vector<value_type, allocator_type>::iterator
+    {
+    };
+    class const_iterator : public std::vector<value_type, allocator_type>::const_iterator
+    {
+    };
+
+    auto begin() { return _vecPtr.begin(); }
+
+    auto end() { return _vecPtr.end(); }
+
+    hash_matrix(size_type height, size_type width) : height(height/size_sq), width(width/size_sq)
+    {
+        _vecPtr.resize(height * width, nullptr);
+    }
+
+    std::pair<size_type, size_type> get_size() const { return {height, width}; }
+
+
+
     void emplace(const std::pair<int, int> &point)
     {
-        auto [y, x] = __tranform_coord(point);
-        std::size_t ind = __get_index_vector(y, x);
+        auto p = __tranform_coord(point);
+        std::size_t ind = __get_index_vector(p.first, p.second);
         if (_vecPtr[ind] == nullptr)
         {
             _vecPtr[ind] = new value_type();

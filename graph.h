@@ -84,7 +84,7 @@ public:
 
     point_vertex *find(const std::pair<int, int> &obj)
     {
-        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::find(obj);
+        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::__find(obj);
         if (ptr == nullptr)
         {
             while (!lightingVertexLi.empty())

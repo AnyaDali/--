@@ -32,7 +32,7 @@ protected:
 
     void __emplaceVertexInVector(const std::pair<int, int> &p)
     {
-        auto [cx, cy] = p;
+        auto  cx = p.first, cy = p.second;
         GLfloat x, y;
         float cnt = 10;
         float a = M_PI * 2 / cnt;
