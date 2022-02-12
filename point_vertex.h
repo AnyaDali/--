@@ -5,21 +5,21 @@
 
 struct point_vertex
 {
-protected:
 public:
     GLuint indexArray;
     static std::size_t index;
+    bool flag_aiming;
 
     std::pair<int, int> point;
 
     static GLfloat radius;
 
-    point_vertex(const std::pair<int, int> &point) : point(point), indexArray(index)
+    point_vertex(const std::pair<int, int> &point) : point(point), indexArray(index), flag_aiming(true)
     {
         point_vertex::index += 1;
     }
 
-    point_vertex(const std::initializer_list<int> &li_point) : indexArray(index)
+    point_vertex(const std::initializer_list<int> &li_point) : indexArray(index), flag_aiming(true)
     {
         if (li_point.size() != 2)
             throw "error";
@@ -29,14 +29,8 @@ public:
         point_vertex::index += 1;
     }
 
-    static void delete_point()
-    {
-        point_vertex::index -= 1;
-    }
-
     ~point_vertex()
     {
-        
     }
 
     bool operator==(const point_vertex &obj) const
@@ -44,7 +38,7 @@ public:
         float deltaX = std::fabs(point.first - obj.point.first);
         float deltaY = std::fabs(point.second - obj.point.second);
         float len = std::sqrt(deltaX * deltaX + deltaY * deltaY);
-
+        
         if (len < radius)
             return true;
         else

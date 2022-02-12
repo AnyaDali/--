@@ -1,12 +1,10 @@
-#include "Graph.h"
+#include "graph_visual.h"
 
 using namespace std;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
 void EnableOpenGL(HWND hwnd, HDC *, HGLRC *);
 void DisableOpenGL(HWND, HDC, HGLRC);
-
-stack<function<void()>> stBack;
 
 GLuint indVertex = 0;
 GLuint indLine = 0;
@@ -16,6 +14,8 @@ enum typeButton
     _BUTTON_VERTEX,
     _BUTTON_LINE,
     _BUTTON_BACK,
+    _BUTTON_CLEAR,
+    _BUTTON_DELETE_GRAPH,
     _BUTTON_QUIT
 };
 
@@ -49,7 +49,9 @@ vector<Button> vecBtns = {
     {_BUTTON_VERTEX, {5, 5, 70, 5, 70, 35, 5, 35}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_LINE, {5, 45, 70, 45, 70, 75, 5, 75}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_BACK, {5, 85, 70, 85, 70, 115, 5, 115}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
-    {_BUTTON_QUIT, {5, 125, 70, 125, 70, 155, 5, 155}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
+    {_BUTTON_CLEAR, {5, 125, 70, 125, 70, 155, 5, 155}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_DELETE_GRAPH, {5, 165, 70, 165, 70, 195, 5, 195}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_QUIT, {5, 205, 70, 205, 70, 235, 5, 235}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
 
 int vecIndexBottom[] = {0, 1, 2, 2, 3, 0};
 
@@ -57,23 +59,24 @@ GLuint backgroundTexture;
 GLint vecVertexBackGround[8];
 GLuint vecIndexBackground[] = {0, 1, 2, 2, 3, 0};
 GLint coordTexBackground[] = {0, 0, 1, 0, 1, 1, 0, 1};
-GLfloat vecColorsBackground[] = {1, 1, 1,
-                                 1, 1, 1,
-                                 1, 1, 1,
-                                 1, 1, 1};
+GLfloat vecColorsBackground[] = {0.5f, 0.5f, 0.5f,
+                                 0.5f, 0.5f, 0.5f,
+                                 0.5f, 0.5f, 0.5f,
+                                 0.5f, 0.5f, 0.5f};
 
 enum stateMouseLButtonDown
 {
     _STATE_NOT_CHOSEN,
     _STATE_DRAW_THE_VERTEX,
-    _STATE_DRAW_THE_LINE
+    _STATE_DRAW_THE_LINE,
+    _STATE_DELETE
 };
 
 int stateMoseL = _STATE_NOT_CHOSEN;
 
 int countClick = 0;
 
-Graph<40> obj(length, width);
+graph_visual<40> obj(length, width);
 
 void loadTex(const char *imgName, GLuint &texture)
 {
@@ -106,18 +109,8 @@ void loadImg(const vector<string> &imgNames)
     for (int i = 0; i < vecBtns.size(); ++i)
         loadTex(imgNames[i].c_str(), vecBtns[i].texture);
 }
-/*
-void popBackVertex()
-{
-    for (int i = 0; i < 24; ++i)
-        vecVertex.pop_back();
-    for (int i = 0; i < 33; ++i)
-        vecIndexVertex.pop_back();
-    indVertex -= 12;
-}
-*/
 
-bool checkButtonArea(int x, int y, Button obj)
+bool checkButtonArea(int x, int y, const Button &obj)
 {
     return obj.vecCoord2d[0] <= x && x <= obj.vecCoord2d[2] && obj.vecCoord2d[1] <= y && y <= obj.vecCoord2d[7];
 }
@@ -157,6 +150,7 @@ void ShowMenu()
 {
 
     glLoadIdentity();
+    glPushMatrix();
     glOrtho(0, width, length, 0, -1, 1);
 
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -171,6 +165,7 @@ void ShowMenu()
     glDisableClientState(GL_VERTEX_ARRAY);
 
     ShowButtons();
+    glPopMatrix();
 }
 
 void ShowTexBackground()
@@ -189,8 +184,8 @@ void ShowTexBackground()
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, vecIndexBackground);
 
-    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisable(GL_TEXTURE_2D);
 }
@@ -210,7 +205,7 @@ void setCoordForBackground()
     vecVertexBackGround[7] = length;
 }
 
-void resizeTheWindow(LPARAM lParam)
+void resizeTheWindow(LPARAM &lParam)
 {
     width = LOWORD(lParam);
     length = HIWORD(lParam);
@@ -218,22 +213,22 @@ void resizeTheWindow(LPARAM lParam)
     float k = width / (float)length;
     glLoadIdentity();
     glOrtho(-k, k, -1, 1, -1, 1);
-
     setCoordForBackground();
 }
 
-// drawing:
+// drawing: vertex
 void DrawVertex()
 {
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(2, GL_FLOAT, 0, obj.data_vertex());
     glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(3, GL_FLOAT, 0, obj.data_color());
+    glColorPointer(4, GL_FLOAT, 0, obj.data_color());
     glDrawElements(GL_TRIANGLES, obj.size_vec_index(), GL_UNSIGNED_INT, obj.data_index());
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+// drawing lines
 void DrawLines()
 {
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -248,25 +243,27 @@ void DrawLines()
 
 void emplaceVertexInVector(LPARAM lParam, float radius)
 {
-    std::pair<int,int> p = {LOWORD(lParam), HIWORD(lParam)};
-
+    std::pair<int, int> p = {LOWORD(lParam), HIWORD(lParam)};
     obj.emplace(p);
-    std::cout << "size_vertex " << obj.size_vec_vertex() << std::endl;
-    std::cout << "size_color " << obj.size_vec_color() << std::endl;
-    std::cout << "size_index " << obj.size_vec_index() << std::endl;
-    std::cout << obj << std::endl;
 }
 
 void setTheLines(LPARAM lParam)
 {
-    std::pair<int,int> p1 = {LOWORD(lParam), HIWORD(lParam)};
+    std::pair<int, int> p1 = {LOWORD(lParam), HIWORD(lParam)};
     obj.find(p1);
 }
 
 void setCoordSystem()
 {
-    glLoadIdentity();
+    // glLoadIdentity();
     glOrtho(0, width, length, 0, -1, 1);
+    // glPopMatrix();
+}
+
+void delete_clck(LPARAM &lParam)
+{
+    std::pair<int, int> p = {LOWORD(lParam), HIWORD(lParam)};
+    obj.delete_for_clck(p);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -319,8 +316,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
     /* enable OpenGL for the window */
     EnableOpenGL(hwnd, &hDC, &hRC);
 
-    loadImg({"1.jpg", "2.jpg", "3.jpg", "4.jpg"});
-    loadBackgroundTex("11.jpg");
+    std::cout << "size container graph = " << sizeof(obj) << std::endl;
+
+    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "4.jpg"});
+    // loadBackgroundTex("11.jpg");
 
     /* program main loop */
     while (!bQuit)
@@ -343,20 +342,24 @@ int WINAPI WinMain(HINSTANCE hInstance,
         {
             /* OpenGL animation code goes here */
 
-            glClearColor(1.0f, 0.7f, 0.5f, 1.0f);
+            glClearColor(0.5f, 0.5f, 0.5f, 0.5f);
             glClear(GL_COLOR_BUFFER_BIT);
-
             setCoordSystem();
-
-            ShowTexBackground();
+            // ShowTexBackground();
 
             DrawLines();
-
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             DrawVertex();
+            glDisable(GL_BLEND);
 
             ShowMenu();
 
+            glPopMatrix();
+
             SwapBuffers(hDC);
+
+            Sleep(1);
         }
     }
 
@@ -372,7 +375,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 
-
     switch (uMsg)
     {
     case WM_CLOSE:
@@ -384,11 +386,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             if (stateMoseL == _STATE_DRAW_THE_VERTEX)
             {
                 emplaceVertexInVector(lParam, point_vertex::radius);
-                // stBack.emplace(obj.pop_back());
             }
             else if (stateMoseL == _STATE_DRAW_THE_LINE)
             {
                 setTheLines(lParam);
+            }
+            else if (stateMoseL == _STATE_DELETE)
+            {
+                delete_clck(lParam);
             }
         }
         else
@@ -399,7 +404,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
-                vecBtns[0].flagPressing = true;
+                vecBtns[_BUTTON_VERTEX].flagPressing = true;
             }
             else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_LINE]))
             {
@@ -407,7 +412,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
-                vecBtns[1].flagPressing = true;
+                vecBtns[_BUTTON_LINE].flagPressing = true;
             }
             else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_QUIT]))
             {
@@ -418,8 +423,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
+                obj.repay_the_vertex();
                 obj.undo_action();
+
                 stateMoseL = _STATE_NOT_CHOSEN;
+            }
+            else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_DELETE_GRAPH]))
+            {
+                for (int i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+                obj.delteGraph();
+                stateMoseL = _STATE_NOT_CHOSEN;
+            }
+            else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_CLEAR]))
+            {
+                for (int i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+                stateMoseL = _STATE_DELETE;
+                obj.repay_the_vertex();
+                vecBtns[_BUTTON_CLEAR].flagPressing = true;
             }
         }
 

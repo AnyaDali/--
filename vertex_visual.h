@@ -12,11 +12,37 @@ protected:
     std::vector<GLuint> vecIndexVertex;
     std::size_t indVertex;
 
-    void __setPointColor(const GLfloat &R, const GLfloat &G, const GLfloat &B)
+    void __set_transparency(const std::size_t &ind_color, const GLfloat &alpha_chanel)
+    {
+        std::cout << "transparency\n";
+        std::size_t i = get_index_color(ind_color);
+        std::size_t len = i + 48;
+
+        for (; i < len; i += 4)
+        {
+            vecColor[i + 3] = alpha_chanel;
+        }
+    }
+
+    void __setPointColor(const GLfloat &R, const GLfloat &G, const GLfloat &B, const GLfloat &alpha_chanel = 1.0f)
     {
         vecColor.emplace_back(R);
         vecColor.emplace_back(G);
         vecColor.emplace_back(B);
+        // alpha_chanel
+        vecColor.emplace_back(alpha_chanel);
+    }
+
+    point_vertex *__clear_vertex(const std::pair<int, int> &point)
+    {
+        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::erase(point);
+        if (ptr == nullptr)
+        {
+            return ptr;
+        }
+        __set_transparency(ptr->indexArray, 0.0f);
+
+        return ptr;
     }
 
     void __popBackVertex()
@@ -32,7 +58,7 @@ protected:
 
     void __emplaceVertexInVector(const std::pair<int, int> &p)
     {
-        auto  cx = p.first, cy = p.second;
+        auto cx = p.first, cy = p.second;
         GLfloat x, y;
         float cnt = 10;
         float a = M_PI * 2 / cnt;
@@ -78,18 +104,27 @@ public:
 
         if (!vecIndexVertex.empty())
             vecIndexVertex.clear();
+
+        indVertex = 0;
     }
 
-    void change_the_color_of_the_vertex(const GLuint &indVert, const GLfloat &R, const GLfloat &G, const GLfloat &B)
+    std::size_t get_index_color(const GLuint &ind)
     {
-        std::size_t i = indVert * 36;
-        std::size_t len = i + 36;
+        return ind * 48;
+    }
 
-        for (; i < len; i += 3)
+    void change_the_color_of_the_vertex(const GLuint &ind_color, const GLfloat &R, const GLfloat &G,
+                                        const GLfloat &B, const GLfloat &alpha_chanel = 1.0f)
+    {
+        std::size_t i = get_index_color(ind_color);
+        std::size_t len = i + 48;
+
+        for (; i < len; i += 4)
         {
             vecColor[i] = R;
             vecColor[i + 1] = G;
             vecColor[i + 2] = B;
+            vecColor[i + 3] = alpha_chanel;
         }
     }
 

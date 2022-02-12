@@ -34,4 +34,6 @@
 
 #include <SOIL/SOIL.h>
 
+#include <glm/glm.hpp>
+
 #endif
