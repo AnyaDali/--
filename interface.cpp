@@ -255,9 +255,7 @@ void setTheLines(LPARAM lParam)
 
 void setCoordSystem()
 {
-    // glLoadIdentity();
     glOrtho(0, width, length, 0, -1, 1);
-    // glPopMatrix();
 }
 
 void delete_clck(LPARAM &lParam)
@@ -355,8 +353,6 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
             ShowMenu();
 
-            glPopMatrix();
-
             SwapBuffers(hDC);
 
             Sleep(1);
@@ -424,7 +420,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     vecBtns[i].flagPressing = false;
 
                 obj.repay_the_vertex();
-                obj.undo_action();
+               // obj.undo_action();
 
                 stateMoseL = _STATE_NOT_CHOSEN;
             }
@@ -448,8 +444,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_MOUSEMOVE:
-        for (int i = 0; i < vecBtns.size(); ++i)
-            vecBtns[i].flagAiming = checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[i]);
+        if (LOWORD(lParam) < 80)
+        {
+            for (int i = 0; i < vecBtns.size(); ++i)
+                vecBtns[i].flagAiming = checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[i]);
+        }
+        else if (stateMoseL == _STATE_DELETE)
+        {
+            //выделение ребра
+            obj.aiming_line({LOWORD(lParam), HIWORD(lParam)});
+            // std::cout << "+\n" << std::endl;
+        }
         break;
 
     case WM_DESTROY:

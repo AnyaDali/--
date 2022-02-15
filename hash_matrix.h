@@ -89,7 +89,7 @@ public:
     std::pair<size_type, size_type> get_size() const { return {height, width}; }
 
     // О(1)
-    void emplace(const std::pair<int, int> &point)
+    point_vertex* emplace(const std::pair<int, int> &point)
     {
         auto p = __tranform_coord(point);
         std::size_t ind = __get_index_vector(p.first, p.second);
@@ -99,6 +99,8 @@ public:
         }
         _vecPtr[ind]->push_back(point);
         liInd.push_back(ind);
+
+        return &_vecPtr[ind]->back();
     }
 
     void clear()

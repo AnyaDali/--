@@ -8,8 +8,8 @@ class bool_matrix
 {
 protected:
     std::vector<bool> ptr;
-    std::vector<std::pair<int, int>> vec_ptr_vertex;
     std::size_t n;
+    std::vector<point_vertex *> vec_ptr_vert;
 
 public:
     bool_matrix(std::size_t n = 0) : n(n)
@@ -33,7 +33,7 @@ public:
         ptr[x * n + y] = val;
     }
 
-    void resize(const std::pair<int, int> &point)
+    void resize(point_vertex *ptr_vertex)
     {
         n += 1;
         int count_move = n - 1;
@@ -50,7 +50,7 @@ public:
         }
         set(n - 1, n - 1);
 
-        vec_ptr_vertex.push_back(point);
+        vec_ptr_vert.push_back(ptr_vertex);
     }
 
     void erase(std::size_t ind)
@@ -85,22 +85,21 @@ public:
         ptr.resize(n * n);
     }
 
-    std::list<std::pair<int, int>> comp_erase(const std::size_t &ind)
+    std::list<point_vertex *> comp_erase(const std::size_t &ind)
     {
-       // std::cout << ind << std::endl;
         set(ind, ind, false);
-        std::list<std::pair<int, int>> li_ind;
+        std::list<point_vertex *> li_ind;
         for (std::size_t j = 0; j < n; ++j)
         {
             if (get_value(ind, j) == true)
             {
                 set(ind, j, false);
-                li_ind.push_back(vec_ptr_vertex[j]);
+                li_ind.push_back(vec_ptr_vert[j]);
             }
         }
-        for (const auto & el : li_ind)
+        for (const auto &el : li_ind)
         {
-            std::cout << "el =  "<< el.first << " " << el.second << std::endl;
+            std::cout << *el << std::endl;
         }
         return li_ind;
     }

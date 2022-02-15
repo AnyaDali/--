@@ -88,10 +88,11 @@ protected:
 public:
     vertexVisual(std::size_t height, std::size_t width) : hash_matrix<size_sq, _Alloc>::hash_matrix(height, width), indVertex(0ULL) {}
 
-    void emplace(const std::pair<int, int> &val)
+    point_vertex *emplace(const std::pair<int, int> &val)
     {
         vertexVisual::__emplaceVertexInVector(val);
-        hash_matrix<size_sq, _Alloc>::emplace(val);
+        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::emplace(val);
+        return ptr;
     }
 
     void clear()
