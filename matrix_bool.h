@@ -113,6 +113,25 @@ public:
         }
     }
 
+    std::size_t calc_degress(std::size_t ind, std::vector<std::vector<int>> &adj)
+    {
+        std::size_t count = 0;
+        set(ind, ind, false);
+
+        for (std::size_t i = 0; i < n; ++i)
+        {
+            if (get_value(ind, i))
+            {
+                adj[ind].push_back(i);
+                ++count;
+            }
+        }
+
+        set(ind, ind, true);
+
+        return count;
+    }
+
     ~bool_matrix()
     {
         std::cout << "~bool_matrix\n";

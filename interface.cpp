@@ -1,5 +1,5 @@
 #include "graph_visual.h"
-
+#include "graph_alg.h"
 using namespace std;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
@@ -16,6 +16,7 @@ enum typeButton
     _BUTTON_BACK,
     _BUTTON_CLEAR,
     _BUTTON_DELETE_GRAPH,
+    _BUTTON_ALGORITHM_1,
     _BUTTON_QUIT
 };
 
@@ -51,7 +52,8 @@ vector<Button> vecBtns = {
     {_BUTTON_BACK, {5, 85, 70, 85, 70, 115, 5, 115}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_CLEAR, {5, 125, 70, 125, 70, 155, 5, 155}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_DELETE_GRAPH, {5, 165, 70, 165, 70, 195, 5, 195}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
-    {_BUTTON_QUIT, {5, 205, 70, 205, 70, 235, 5, 235}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
+    {_BUTTON_ALGORITHM_1, {5, 230, 70, 230, 70, 260, 5, 260}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_QUIT, {5, 500, 70, 500, 70, 530, 5, 530}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
 
 int vecIndexBottom[] = {0, 1, 2, 2, 3, 0};
 
@@ -76,7 +78,7 @@ int stateMoseL = _STATE_NOT_CHOSEN;
 
 int countClick = 0;
 
-graph_visual<40> obj(length, width);
+graph_algorithm<40> obj(length, width);
 
 void loadTex(const char *imgName, GLuint &texture)
 {
@@ -316,7 +318,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     std::cout << "size container graph = " << sizeof(obj) << std::endl;
 
-    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "4.jpg"});
+    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "alg_1.jpg", "4.jpg"});
     // loadBackgroundTex("11.jpg");
 
     /* program main loop */
@@ -420,7 +422,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     vecBtns[i].flagPressing = false;
 
                 obj.repay_the_vertex();
-               // obj.undo_action();
+                // obj.undo_action();
 
                 stateMoseL = _STATE_NOT_CHOSEN;
             }
@@ -438,6 +440,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 stateMoseL = _STATE_DELETE;
                 obj.repay_the_vertex();
                 vecBtns[_BUTTON_CLEAR].flagPressing = true;
+            }
+            else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_ALGORITHM_1]))
+            {
+                for (int i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+                obj.DSATUR_algorithm();
+                
             }
         }
 

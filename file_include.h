@@ -12,18 +12,15 @@
 
 #include <vector>
 
+#include <set>
+
 #include <stack>
 
 #include <algorithm>
 
-#include <stack>
-
 #include <functional>
 
 #include <windows.h>
-
-#define _USE_MATH_DEFINES
-#include <cmath>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -34,6 +31,5 @@
 
 #include <SOIL/SOIL.h>
 
-#include <glm/glm.hpp>
 
 #endif
