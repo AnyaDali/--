@@ -3,10 +3,14 @@
 
 #include <iostream>
 
+#include <map>
+
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <memory.h>
+
+#include <tuple>
 
 #include <list>
 

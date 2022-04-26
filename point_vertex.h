@@ -6,20 +6,19 @@
 struct point_vertex
 {
 public:
-    GLuint indexArray;
+    size_t indexArray;
     static std::size_t index;
-    bool flag_aiming;
 
     std::pair<int, int> point;
 
     static GLfloat radius;
 
-    point_vertex(const std::pair<int, int> &point) : point(point), indexArray(index), flag_aiming(true)
+    point_vertex(const std::pair<int, int> &point) : point(point), indexArray(index)
     {
         point_vertex::index += 1;
     }
 
-    point_vertex(const std::initializer_list<int> &li_point) : indexArray(index), flag_aiming(true)
+    point_vertex(const std::initializer_list<int> &li_point) : indexArray(index)
     {
         if (li_point.size() != 2)
             throw "error";
@@ -38,7 +37,7 @@ public:
         float deltaX = std::fabs(point.first - obj.point.first);
         float deltaY = std::fabs(point.second - obj.point.second);
         float len = std::sqrt(deltaX * deltaX + deltaY * deltaY);
-        
+
         if (len < radius)
             return true;
         else

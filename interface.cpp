@@ -1,5 +1,5 @@
-#include "graph_visual.h"
-#include "graph_alg.h"
+#include "interface_graph.h"
+
 using namespace std;
 
 LRESULT CALLBACK WindowProc(HWND, UINT, WPARAM, LPARAM);
@@ -17,6 +17,7 @@ enum typeButton
     _BUTTON_CLEAR,
     _BUTTON_DELETE_GRAPH,
     _BUTTON_ALGORITHM_1,
+    _BUTTON_ALGORITHM_2,
     _BUTTON_QUIT
 };
 
@@ -53,6 +54,7 @@ vector<Button> vecBtns = {
     {_BUTTON_CLEAR, {5, 125, 70, 125, 70, 155, 5, 155}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_DELETE_GRAPH, {5, 165, 70, 165, 70, 195, 5, 195}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_ALGORITHM_1, {5, 230, 70, 230, 70, 260, 5, 260}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_ALGORITHM_2, {5, 270, 70, 270, 70, 300, 5, 300}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_QUIT, {5, 500, 70, 500, 70, 530, 5, 530}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
 
 int vecIndexBottom[] = {0, 1, 2, 2, 3, 0};
@@ -78,7 +80,7 @@ int stateMoseL = _STATE_NOT_CHOSEN;
 
 int countClick = 0;
 
-graph_algorithm<40> obj(length, width);
+interface_graph<40> obj(length, width);
 
 void loadTex(const char *imgName, GLuint &texture)
 {
@@ -132,14 +134,14 @@ void ShowButtons()
 
         if (vecBtns[i].flagPressing)
         {
-            glColor3f(1.0f, 0.0f, 1.0f);
+            glColor3f(0.5f, 0.5f, 0.5f);
         }
         else
         {
             if (vecBtns[i].flagAiming)
-                glColor3f(1.0f, 0.0f, 0.5f);
+                glColor3f(0.6f, 0.6f, 0.6f);
             else
-                glColor3f(0.5f, 0.0f, 0.5f);
+                glColor3f(0.8f, 0.8f, 0.8f);
         }
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, &vecIndexBottom);
     }
@@ -218,14 +220,13 @@ void resizeTheWindow(LPARAM &lParam)
     setCoordForBackground();
 }
 
-// drawing: vertex
 void DrawVertex()
 {
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2, GL_FLOAT, 0, obj.data_vertex());
+    glVertexPointer(2, GL_FLOAT, 0, obj.vertex_data());
     glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(4, GL_FLOAT, 0, obj.data_color());
-    glDrawElements(GL_TRIANGLES, obj.size_vec_index(), GL_UNSIGNED_INT, obj.data_index());
+    glColorPointer(4, GL_FLOAT, 0, obj.vertex_color_data());
+    glDrawElements(GL_TRIANGLES, obj.vertex_index_size(), GL_UNSIGNED_INT, obj.vertex_index_data());
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
@@ -234,25 +235,25 @@ void DrawVertex()
 void DrawLines()
 {
     glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(2, GL_FLOAT, 0, obj.vertex_line_data());
+    glVertexPointer(2, GL_FLOAT, 0, obj.lines_data());
     glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(3, GL_FLOAT, 0, obj.color_line_data());
-    glDrawElements(GL_LINES, obj.index_line_size(), GL_UNSIGNED_INT, obj.index_line_data());
+    glColorPointer(3, GL_FLOAT, 0, obj.lines_color_data());
+    glDrawElements(GL_LINES, obj.lines_index_size(), GL_UNSIGNED_INT, obj.lines_index_data());
     glDisableClientState(GL_COLOR_ARRAY);
 
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void emplaceVertexInVector(LPARAM lParam, float radius)
+void draw_vertex(LPARAM lParam)
 {
     std::pair<int, int> p = {LOWORD(lParam), HIWORD(lParam)};
-    obj.emplace(p);
+    obj.add_vertex(p);
 }
 
-void setTheLines(LPARAM lParam)
+void chose_vertex(LPARAM lParam)
 {
-    std::pair<int, int> p1 = {LOWORD(lParam), HIWORD(lParam)};
-    obj.find(p1);
+    std::pair<int, int> p = {LOWORD(lParam), HIWORD(lParam)};
+    obj.find_vertex(p);
 }
 
 void setCoordSystem()
@@ -263,7 +264,7 @@ void setCoordSystem()
 void delete_clck(LPARAM &lParam)
 {
     std::pair<int, int> p = {LOWORD(lParam), HIWORD(lParam)};
-    obj.delete_for_clck(p);
+    obj.erase(p);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance,
@@ -289,18 +290,17 @@ int WINAPI WinMain(HINSTANCE hInstance,
     wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
     wcex.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    wcex.lpszMenuName = NULL;
+    wcex.lpszMenuName = "Opengl Sample";
     wcex.lpszClassName = "GLSample";
     wcex.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
-    ;
 
     if (!RegisterClassEx(&wcex))
         return 0;
 
     /* create main window */
     hwnd = CreateWindowEx(0,
-                          "GLSample",
-                          "OpenGL Sample",
+                          wcex.lpszClassName,
+                          wcex.lpszMenuName,
                           WS_OVERLAPPEDWINDOW,
                           CW_USEDEFAULT,
                           CW_USEDEFAULT,
@@ -318,7 +318,7 @@ int WINAPI WinMain(HINSTANCE hInstance,
 
     std::cout << "size container graph = " << sizeof(obj) << std::endl;
 
-    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "alg_1.jpg", "4.jpg"});
+    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "alg_1.jpg", "alg_2.jpg", "4.jpg"});
     // loadBackgroundTex("11.jpg");
 
     /* program main loop */
@@ -383,11 +383,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             if (stateMoseL == _STATE_DRAW_THE_VERTEX)
             {
-                emplaceVertexInVector(lParam, point_vertex::radius);
+                draw_vertex(lParam);
             }
             else if (stateMoseL == _STATE_DRAW_THE_LINE)
             {
-                setTheLines(lParam);
+                chose_vertex(lParam);
             }
             else if (stateMoseL == _STATE_DELETE)
             {
@@ -430,7 +430,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
-                obj.delteGraph();
+                // obj.delteGraph();
+                obj.clear();
                 stateMoseL = _STATE_NOT_CHOSEN;
             }
             else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_CLEAR]))
@@ -438,15 +439,21 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
                 stateMoseL = _STATE_DELETE;
-                obj.repay_the_vertex();
+
                 vecBtns[_BUTTON_CLEAR].flagPressing = true;
             }
             else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_ALGORITHM_1]))
             {
                 for (int i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
-                obj.DSATUR_algorithm();
-                
+
+                obj.Dsatur_alg();
+            }
+            else if (checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[_BUTTON_ALGORITHM_2]))
+            {
+                for (int i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+                obj.Brown_alg();
             }
         }
 
@@ -458,12 +465,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             for (int i = 0; i < vecBtns.size(); ++i)
                 vecBtns[i].flagAiming = checkButtonArea(LOWORD(lParam), HIWORD(lParam), vecBtns[i]);
         }
-        else if (stateMoseL == _STATE_DELETE)
-        {
+        // else if (stateMoseL == _STATE_DELETE)
+        /*{
             //выделение ребра
-            obj.aiming_line({LOWORD(lParam), HIWORD(lParam)});
+            // obj.aiming_line({LOWORD(lParam), HIWORD(lParam)});
             // std::cout << "+\n" << std::endl;
-        }
+        }*/
         break;
 
     case WM_DESTROY:
@@ -482,7 +489,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             PostQuitMessage(0);
             break;
         case VK_SPACE:
-            obj.set_the_line();
+            obj.add_line();
             break;
         }
     }
