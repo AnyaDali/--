@@ -4,56 +4,69 @@
 #include "hash_matrix.h"
 
 template <std::size_t size_sq, typename _Alloc = std::allocator<std::list<point_vertex>>>
-class vertexVisual : public hash_matrix<size_sq, _Alloc>
+class vertex_visual
 {
 protected:
-    std::vector<GLfloat> vecVertex;
-    std::vector<GLfloat> vecColor;
-    std::vector<GLuint> vecIndexVertex;
-    std::size_t indVertex;
+    std::vector<GLfloat> __vec_vertex;
+    std::vector<GLfloat> __vec_color;
+    std::vector<GLuint> __vec_index_vertex;
+
+    hash_matrix<size_sq, _Alloc> mx;
+
+    std::size_t ind_vertex;
+
+    std::size_t __get_color_value(const GLuint &ind) const { return ind * 48; }
+
+    std::size_t __get_vertex_value(const GLuint &ind) const { return ind * 24; }
+
+    std::size_t __get_index_value(const GLuint &ind) const { return ind * 12; }
 
     void __set_transparency(const std::size_t &ind_color, const GLfloat &alpha_chanel)
     {
         std::cout << "transparency\n";
-        std::size_t i = get_index_color(ind_color);
+        std::size_t i = __get_color_value(ind_color);
         std::size_t len = i + 48;
 
         for (; i < len; i += 4)
         {
-            vecColor[i + 3] = alpha_chanel;
+            __vec_color[i + 3] = alpha_chanel;
         }
     }
 
-    void __setPointColor(const GLfloat &R, const GLfloat &G, const GLfloat &B, const GLfloat &alpha_chanel = 1.0f)
+    void __set_point_color(const GLfloat &R, const GLfloat &G, const GLfloat &B, const GLfloat &alpha_chanel = 1.0f)
     {
-        vecColor.emplace_back(R);
-        vecColor.emplace_back(G);
-        vecColor.emplace_back(B);
+        __vec_color.emplace_back(R);
+        __vec_color.emplace_back(G);
+        __vec_color.emplace_back(B);
         // alpha_chanel
-        vecColor.emplace_back(alpha_chanel);
-    }
-
-    point_vertex *__clear_vertex(const std::pair<int, int> &point)
-    {
-        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::erase(point);
-        if (ptr == nullptr)
-        {
-            return ptr;
-        }
-        __set_transparency(ptr->indexArray, 0.0f);
-
-        return ptr;
+        __vec_color.emplace_back(alpha_chanel);
     }
 
     void __popBackVertex()
     {
         for (std::size_t i = 0; i < 24; ++i)
-            vecVertex.pop_back();
+            __vec_vertex.pop_back();
         for (std::size_t i = 0; i < 33; ++i)
-            vecIndexVertex.pop_back();
-        for (std::size_t i = 0; i < 36; ++i)
-            vecColor.pop_back();
-        indVertex -= 12;
+            __vec_index_vertex.pop_back();
+        for (std::size_t i = 0; i < 48; ++i)
+            __vec_color.pop_back();
+        --ind_vertex;
+    }
+
+    void __erase_vetex(size_t index)
+    {
+        size_t ind = __get_vertex_value(index);
+
+        __vec_vertex.erase(__vec_vertex.begin() + ind,
+                           __vec_vertex.begin() + ind + 24);
+
+        for (std::size_t i = 0; i < 33; ++i)
+            __vec_index_vertex.pop_back();
+
+        for (std::size_t i = 0; i < 48; ++i)
+            __vec_color.pop_back();
+
+        --ind_vertex;
     }
 
     void __emplaceVertexInVector(const std::pair<int, int> &p)
@@ -62,86 +75,111 @@ protected:
         GLfloat x, y;
         float cnt = 10;
         float a = M_PI * 2 / cnt;
-        vecVertex.emplace_back(cx);
-        vecVertex.emplace_back(cy);
-        GLuint indCenter = indVertex;
-        __setPointColor(1.0f, 0.0f, 0.4f);
+        __vec_vertex.emplace_back(cx);
+        __vec_vertex.emplace_back(cy);
+        size_t cur_index = __get_index_value(ind_vertex);
+        size_t indCenter = cur_index;
+        __set_point_color(1.0f, 0.0f, 0.4f);
 
         for (std::size_t i = 0; i < cnt + 1; ++i)
         {
             x = sin(a * i) * point_vertex::radius;
             y = cos(a * i) * point_vertex::radius;
-            vecVertex.emplace_back(x + cx);
-            vecVertex.emplace_back(y + cy);
-            __setPointColor(1.0f, 0.0f, 0.4f);
+            __vec_vertex.emplace_back(x + cx);
+            __vec_vertex.emplace_back(y + cy);
+            __set_point_color(1.0f, 0.0f, 0.4f);
 
-            vecIndexVertex.emplace_back(indCenter);
-            vecIndexVertex.emplace_back(indVertex + 1);
-            vecIndexVertex.emplace_back(indVertex + 2);
+            __vec_index_vertex.emplace_back(indCenter);
+            __vec_index_vertex.emplace_back(cur_index + 1);
+            __vec_index_vertex.emplace_back(cur_index + 2);
 
-            ++indVertex;
+            ++cur_index;
         }
-        vecIndexVertex[vecIndexVertex.size() - 1] = indCenter + 1;
-        ++indVertex;
+        __vec_index_vertex.back() = indCenter + 1;
     }
 
 public:
-    vertexVisual(std::size_t height, std::size_t width) : hash_matrix<size_sq, _Alloc>::hash_matrix(height, width), indVertex(0ULL) {}
+    vertex_visual(size_t height, size_t width) : ind_vertex(0), mx(height, width) {}
 
-    point_vertex *emplace(const std::pair<int, int> &val)
+    void emplace(const std::pair<int, int> &val)
     {
-        vertexVisual::__emplaceVertexInVector(val);
-        point_vertex *ptr = hash_matrix<size_sq, _Alloc>::emplace(val);
+        mx.emplace(val);
+
+        __emplaceVertexInVector(val);
+        ++ind_vertex;
+    }
+
+    point_vertex *find(const std::pair<int, int> &val)
+    {
+        point_vertex *ptr = mx.find(val);
+        return ptr;
+    }
+
+    std::tuple<size_t *, std::pair<int, int>> erase(const std::pair<int, int> &val)
+    {
+        auto ptr = mx.find_and_erase(val);
+        if (std::get<0>(ptr) != nullptr)
+        {
+            __erase_vetex(*std::get<0>(ptr));
+        }
         return ptr;
     }
 
     void clear()
     {
-        if (!vecVertex.empty())
-            vecVertex.clear();
 
-        if (!vecColor.empty())
-            vecColor.clear();
+        __vec_vertex.clear();
 
-        if (!vecIndexVertex.empty())
-            vecIndexVertex.clear();
+        __vec_color.clear();
 
-        indVertex = 0;
-    }
-
-    std::size_t get_index_color(const GLuint &ind)
-    {
-        return ind * 48;
+        __vec_index_vertex.clear();
+        mx.clear();
+        
+        ind_vertex = 0;
     }
 
     void change_the_color_of_the_vertex(const GLuint &ind_color, const GLfloat &R, const GLfloat &G,
                                         const GLfloat &B, const GLfloat &alpha_chanel = 1.0f)
     {
-        std::size_t i = get_index_color(ind_color);
+        std::size_t i = __get_color_value(ind_color);
         std::size_t len = i + 48;
 
         for (; i < len; i += 4)
         {
-            vecColor[i] = R;
-            vecColor[i + 1] = G;
-            vecColor[i + 2] = B;
-            vecColor[i + 3] = alpha_chanel;
+            __vec_color[i] = R;
+            __vec_color[i + 1] = G;
+            __vec_color[i + 2] = B;
+            __vec_color[i + 3] = alpha_chanel;
         }
     }
 
-    ~vertexVisual()
+    size_t count_of_vertex() const noexcept { return ind_vertex; }
+
+    ~vertex_visual()
     {
+        mx.clear();
+        clear();
         std::cout << "~vertexVisual\n";
-        vertexVisual::clear();
     }
 
-    std::size_t size_vec_color() { return this->vecColor.size(); }
-    std::size_t size_vec_vertex() { return this->vecVertex.size(); }
-    std::size_t size_vec_index() { return this->vecIndexVertex.size(); }
+    void print()
+    {
+        mx.print();
+    }
 
-    GLfloat *data_color() { return this->vecColor.data(); }
-    GLfloat *data_vertex() { return this->vecVertex.data(); }
-    GLuint *data_index() { return this->vecIndexVertex.data(); }
+    void print_li()
+    {
+
+        mx.print_li();
+    }
+
+    GLuint size_vec_color() const noexcept { return __vec_color.size(); }
+    GLuint size_vec_vertex() const noexcept { return __vec_vertex.size(); }
+    GLuint size_vec_index() const noexcept { return __vec_index_vertex.size(); }
+
+    GLfloat *data_color() { return __vec_color.data(); }
+    GLfloat *data_vertex() { return __vec_vertex.data(); }
+    GLuint *data_index() { return __vec_index_vertex.data(); }
 };
 
 #endif
