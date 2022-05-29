@@ -35,7 +35,11 @@ public:
         return *this;
     }
 
-    graph_model &operator=(graph_model &&obj) noexcept { adj_lists = std::move(obj.adj_lists); }
+    graph_model &operator=(graph_model &&obj) noexcept
+    {
+        adj_lists = std::move(obj.adj_lists);
+        return *this;
+    }
 
     graph_model() {}
 

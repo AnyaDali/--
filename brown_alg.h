@@ -89,7 +89,7 @@ protected:
 
     void __calc_Ui(const adj_colors &adj_color_vertex, info_node &U, size_t index_U, size_t q)
     {
-        for (int i = 0; i < q + 1; ++i)
+        for (int i = 0; i < static_cast<int>(q + 1); ++i)
         {
             if (__not_found(adj_color_vertex, index_U, i)) // занести в множество U[i] вершины
             {
@@ -165,7 +165,6 @@ protected:
                 --i;
                 size_t k_kopy = k;
                 size_t q_copy = l[i];
-                bool updateU_copy = false;
                 if (!st_m.empty())
                     st_m.pop();
 
@@ -185,16 +184,16 @@ protected:
                 ad_cl.paint_the_vertex(i, j);
                 c[i] = j;
 
-                if (j < k)
+                if (j < static_cast<int>(k))
                 {
-                    if (j >= q)
+                    if (j >= static_cast<int>(q))
                     {
                         q = j + 1;
                     }
 
                     if (i == n - 1)
                     {
-                        std::cout << q << "  " << k << std::endl;
+                    
                         int max_v = 0;
                         for (const auto &el : c)
                         {
@@ -243,7 +242,6 @@ protected:
                     --i;
                     size_t k_copy = k;
                     size_t q_copy = l[i];
-                    bool updateU_copy = false;
 
                     if (!st_m.empty())
                         st_m.pop();

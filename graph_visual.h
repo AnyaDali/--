@@ -47,11 +47,11 @@ public:
 
             li_aiming.push_back(ptr);
 
-            __vv.change_the_color_of_the_vertex(li_aiming.back()->indexArray, 1.0f, 0.0f, 0.7f);
+            __vv.change_the_color_of_the_vertex(li_aiming.back()->indexArray, 0.5f, 0.0f, 1.0f);
 
             if (li_aiming.size() > 2)
             {
-                __vv.change_the_color_of_the_vertex(li_aiming.front()->indexArray, 1.0f, 0.0f, 0.4f);
+                __vv.change_the_color_of_the_vertex(li_aiming.front()->indexArray, 0.0f, 0.0f, 0.7f);
                 li_aiming.pop_front();
             }
         }
@@ -67,7 +67,7 @@ public:
     {
         while (!li_aiming.empty())
         {
-            __vv.change_the_color_of_the_vertex(li_aiming.back()->indexArray, 1.0f, 0.0f, 0.4f);
+            __vv.change_the_color_of_the_vertex(li_aiming.back()->indexArray, 0.0f, 0.0f, 0.7f);
             li_aiming.pop_back();
         }
     }
@@ -123,7 +123,7 @@ public:
     {
         for (size_t i = 0; i < __vv.count_of_vertex(); ++i)
         {
-            __vv.change_the_color_of_the_vertex(i, 1.0f, 0.0f, 0.4f);
+            __vv.change_the_color_of_the_vertex(i, 0.0f, 0.0f, 0.7f);
         }
     }
 
@@ -155,6 +155,8 @@ public:
     GLfloat *vertex_data() { return __vv.data_vertex(); }
     GLfloat *vertex_color_data() { return __vv.data_color(); }
     GLuint *vertex_index_data() { return __vv.data_index(); }
+
+    const std::vector<point_vertex *>& get_vec_ptr() const { return __vv.get_vec_ptr(); }
 };
 
 #endif

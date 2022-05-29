@@ -42,7 +42,7 @@ public:
         std::vector<std::set<int>> adjCols(n, std::set<int>()); // множество цветов каждой вершины
         std::set<node_info, comparator> Q;                      // упорядоченное множество вершин по насыщенночти
         auto maxPtr = Q.begin();
-        for (u = 0; u < n; ++u)
+        for (u = 0; u < static_cast<int>(n); ++u)
         {
             d[u] = ref_graph_model.get_degress_of_vertex(u);
             Q.emplace(std::move(node_info{0, d[u], u})); // заполение множества
@@ -59,7 +59,7 @@ public:
                 if (color_vec[*v] != -1)
                     used[color_vec[*v]] = true;
 
-            for (i = 0; i < used.size(); i++)
+            for (i = 0; i < static_cast<int>(used.size()); i++)
                 if (used[i] == false)
                     break;
 

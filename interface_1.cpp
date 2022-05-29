@@ -1,6 +1,8 @@
 #include "file_include.h"
 #include "interface_graph.h"
 
+class form;
+
 enum typeButton
 {
     _BUTTON_VERTEX,
@@ -8,12 +10,14 @@ enum typeButton
     _BUTTON_BACK,
     _BUTTON_CLEAR,
     _BUTTON_DELETE_GRAPH,
+    _BUTTON_SAVE,
+    _BUTTON_LOAD,
     _BUTTON_ALGORITHM_1,
     _BUTTON_ALGORITHM_2,
     _BUTTON_QUIT
 };
 
-int width = 800;
+int width = 1000;
 int length = 800;
 
 GLint vecBackgroundMenu[] = {
@@ -45,8 +49,10 @@ std::vector<Button> vecBtns = {
     {_BUTTON_BACK, {5, 85, 70, 85, 70, 115, 5, 115}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_CLEAR, {5, 125, 70, 125, 70, 155, 5, 155}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_DELETE_GRAPH, {5, 165, 70, 165, 70, 195, 5, 195}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
-    {_BUTTON_ALGORITHM_1, {5, 230, 70, 230, 70, 260, 5, 260}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
-    {_BUTTON_ALGORITHM_2, {5, 270, 70, 270, 70, 300, 5, 300}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_SAVE, {5, 205, 70, 205, 70, 235, 5, 235}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_LOAD, {5, 245, 70, 245, 70, 275, 5, 275}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_ALGORITHM_1, {5, 400, 70, 400, 70, 430, 5, 430}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
+    {_BUTTON_ALGORITHM_2, {5, 440, 70, 440, 70, 470, 5, 470}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}},
     {_BUTTON_QUIT, {5, 500, 70, 500, 70, 530, 5, 530}, false, false, 0, {0, 0, 1, 0, 1, 1, 0, 1}}};
 
 int vecIndexBottom[] = {0, 1, 2, 2, 3, 0};
@@ -103,7 +109,7 @@ void loadBackgroundTex(const char *fName)
 
 void loadImg(const std::vector<std::string> &imgNames)
 {
-    for (int i = 0; i < vecBtns.size(); ++i)
+    for (size_t i = 0; i < vecBtns.size(); ++i)
         loadTex(imgNames[i].c_str(), vecBtns[i].texture);
 }
 
@@ -118,7 +124,7 @@ void ShowButtons()
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    for (int i = 0; i < vecBtns.size(); ++i)
+    for (size_t i = 0; i < vecBtns.size(); ++i)
     {
         glBindTexture(GL_TEXTURE_2D, vecBtns[i].texture);
         glVertexPointer(2, GL_INT, 0, &vecBtns[i].vecCoord2d);
@@ -249,7 +255,7 @@ void delete_clck(int x, int y)
     obj.erase(p);
 }
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode)
+static void key_callback(GLFWwindow *window, int key, int, int action, int)
 {
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
@@ -262,7 +268,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
     if (xpos < 80)
     {
         glfwSetCursor(window, NULL);
-        for (int i = 0; i < vecBtns.size(); ++i)
+        for (size_t i = 0; i < vecBtns.size(); ++i)
         {
             vecBtns[i].flagAiming = checkButtonArea(xpos, ypos, vecBtns[i]);
             if (vecBtns[i].flagAiming)
@@ -285,19 +291,55 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
     }
 }
 
-void cursor_enter_callback(GLFWwindow *window, int entered)
+void cursor_enter_callback(GLFWwindow *, int entered)
 {
     if (entered)
     {
-        std::cout << "The cursor entered the content area of the window\n";
+        // std::cout << "The cursor entered the content area of the window\n";
     }
     else
     {
-        std::cout << "The cursor left the content area of the window\n";
+        // std::cout << "The cursor left the content area of the window\n";
     }
 }
 
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
+void button_pressing(int *arr)
+{
+    arr[0] += 1;
+    arr[1] += 1;
+    arr[2] -= 1;
+    arr[3] += 1;
+
+    arr[4] -= 1;
+    arr[5] -= 1;
+    arr[6] += 1;
+    arr[7] -= 1;
+}
+
+void button_disable(int *arr)
+{
+
+    arr[0] -= 1;
+    arr[1] -= 1;
+    arr[2] += 1;
+    arr[3] -= 1;
+
+    arr[4] += 1;
+    arr[5] += 1;
+    arr[6] -= 1;
+    arr[7] += 1;
+}
+
+void disable_interface_button()
+{
+    for (size_t i = 0; i < vecBtns.size(); ++i)
+    {
+        if (vecBtns[i].flagPressing)
+            button_disable(vecBtns[i].vecCoord2d);
+    }
+}
+
+void mouse_button_callback(GLFWwindow *window, int button, int action, int)
 {
     double x, y;
     glfwGetCursorPos(window, &x, &y);
@@ -323,28 +365,35 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         {
             if (checkButtonArea(x, y, vecBtns[_BUTTON_VERTEX]))
             {
+                disable_interface_button();
                 glfwSetCursor(window, hand_cursor);
                 stateMoseL = _STATE_DRAW_THE_VERTEX;
-                for (int i = 0; i < vecBtns.size(); ++i)
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
+
+                button_pressing(vecBtns[_BUTTON_VERTEX].vecCoord2d);
 
                 vecBtns[_BUTTON_VERTEX].flagPressing = true;
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_LINE]))
             {
+                disable_interface_button();
                 stateMoseL = _STATE_DRAW_THE_LINE;
-                for (int i = 0; i < vecBtns.size(); ++i)
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
+                button_pressing(vecBtns[_BUTTON_LINE].vecCoord2d);
                 vecBtns[_BUTTON_LINE].flagPressing = true;
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_QUIT]))
             {
+                disable_interface_button();
                 glfwSetWindowShouldClose(window, GL_TRUE);
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_BACK]))
             {
-                for (int i = 0; i < vecBtns.size(); ++i)
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
                 obj.repay_the_vertex();
@@ -354,36 +403,74 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_DELETE_GRAPH]))
             {
-                for (int i = 0; i < vecBtns.size(); ++i)
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
-                // obj.delteGraph();
+
                 obj.clear();
                 stateMoseL = _STATE_NOT_CHOSEN;
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_CLEAR]))
             {
-                for (int i = 0; i < vecBtns.size(); ++i)
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
                 stateMoseL = _STATE_DELETE;
 
+                button_pressing(vecBtns[_BUTTON_CLEAR].vecCoord2d);
                 vecBtns[_BUTTON_CLEAR].flagPressing = true;
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_ALGORITHM_1]))
             {
-                for (int i = 0; i < vecBtns.size(); ++i)
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
 
                 obj.Dsatur_alg();
             }
             else if (checkButtonArea(x, y, vecBtns[_BUTTON_ALGORITHM_2]))
             {
-                for (int i = 0; i < vecBtns.size(); ++i)
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
                     vecBtns[i].flagPressing = false;
                 obj.Brown_alg();
+            }
+            else if (checkButtonArea(x, y, vecBtns[_BUTTON_SAVE]))
+            {
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+
+                std::string str;
+                std::cout << "enter file name: ";
+                std::cin >> str;
+                obj.save(std::move(str));
+            }
+            else if (checkButtonArea(x, y, vecBtns[_BUTTON_LOAD]))
+            {
+                disable_interface_button();
+                for (size_t i = 0; i < vecBtns.size(); ++i)
+                    vecBtns[i].flagPressing = false;
+                std::string str;
+                std::cout << "enter file name: ";
+                std::cin >> str;
+                obj.load(std::move(str));
             }
         }
     }
 }
+
+void load_icon(GLFWwindow *window, const std::string &img_name1, const std::string &img_name2)
+{
+    int chanels1, chanels2;
+    GLFWimage data[2];
+    data[0].pixels = SOIL_load_image(img_name1.c_str(), &data[0].width, &data[0].height, &chanels1, 0);
+    data[1].pixels = SOIL_load_image(img_name2.c_str(), &data[1].width, &data[1].height, &chanels2, 0);
+    glfwSetWindowIcon(window, 2, data);
+    SOIL_free_image_data(data[0].pixels);
+    SOIL_free_image_data(data[1].pixels);
+}
+
 
 int main()
 {
@@ -397,14 +484,14 @@ int main()
     // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_DECORATED, GLFW_TRUE);
     glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 
     GLFWwindow *window = glfwCreateWindow(1000, 800, "graph", nullptr, nullptr);
     glfwMakeContextCurrent(window);
 
-    glfwSetWindowSizeLimits(window, 400, 400, 1000, 800);
+    // glfwSetWindowSizeLimits(window, 400, 400, 1000, 800);
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -418,17 +505,18 @@ int main()
     // glfwSetWindowIcon();
 
     // Define the viewport dimensions
-
     glfwGetFramebufferSize(window, &width, &length);
     glViewport(0, 0, width, length);
 
-    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "6.jpg", "alg_1.jpg", "alg_2.jpg", "4.jpg"});
 
-    double x, y;
+
+    loadImg({"1.jpg", "2.jpg", "3.jpg", "5.png", "clear_icon.png", "save_icon.png", "load_icon.png", "alg_1.jpg", "alg_2.jpg", "4.jpg"});
+    load_icon(window, "lable1.png", "lable2.png");
+
+   // form ptr;
 
     while (!glfwWindowShouldClose(window))
     {
-        // Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
         glfwPollEvents();
 
         // Render
@@ -436,22 +524,13 @@ int main()
         glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glfwGetCursorPos(window, &x, &y);
-
         setCoordSystem();
-        // ShowTexBackground();
-
         DrawLines();
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         DrawVertex();
-        glDisable(GL_BLEND);
-
         ShowMenu();
 
-        // Swap the screen buffers
         glfwSwapBuffers(window);
-
+        
         glfwSwapInterval(1);
     }
     glfwDestroyCursor(hand_cursor);

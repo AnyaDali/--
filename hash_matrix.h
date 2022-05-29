@@ -13,6 +13,7 @@ template <std::size_t size_sq, typename _Alloc = std::allocator<std::list<point_
 class hash_matrix
 {
 public:
+    // static_assert(size_sq < 2 * point_vertex::radius, "error");
     using value_type = std::list<point_vertex>;
     using allocator_type = _Alloc;
     using reference = value_type &;
@@ -62,7 +63,6 @@ protected:
             double deltaY = fabs(it->point.second - point.second);
             if (sqrt(deltaX * deltaX + deltaY * deltaY) < point_vertex::radius)
             {
-                size_t *res_ind = new size_t(it->indexArray);
                 _vecPtr[ind]->erase(it);
                 point_vertex::index -= 1;
                 return std::make_tuple(new size_t(it->indexArray), it->point);
@@ -300,6 +300,8 @@ public:
         }
         std::cout << '\n';
     }
+
+    const std::vector<point_vertex *> &get_vec_ptr() const { return __ptr; }
 };
 
 #endif

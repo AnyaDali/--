@@ -11,12 +11,11 @@ public:
 
     std::pair<int, int> point;
 
-    static GLfloat radius;
+    static const GLfloat radius;
 
-    point_vertex(const std::pair<int, int> &point) : point(point), indexArray(index)
-    {
-        point_vertex::index += 1;
-    }
+   // point_vertex() : indexArray(index), point(std::make_pair(0, 0)) { index += 1; }
+
+    point_vertex(const std::pair<int, int> &point) : indexArray(index), point(point) { index += 1; }
 
     point_vertex(const std::initializer_list<int> &li_point) : indexArray(index)
     {
@@ -28,9 +27,7 @@ public:
         point_vertex::index += 1;
     }
 
-    ~point_vertex()
-    {
-    }
+    ~point_vertex() {}
 
     bool operator==(const point_vertex &obj) const
     {
@@ -55,7 +52,7 @@ std::ostream &operator<<(std::ostream &os, const point_vertex &obj)
     return os;
 }
 
-float point_vertex::radius = 10.0f;
+const float point_vertex::radius = 10.0f;
 std::size_t point_vertex::index = 0;
 
 #endif

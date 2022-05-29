@@ -104,7 +104,6 @@ public:
 
     std::tuple<size_t *, std::pair<int, int>, std::pair<int, int>> find(const std::pair<int, int> &point)
     {
-        size_t *ind = nullptr;
         for (std::size_t i = 0; i < vec_lines.size(); i += 4)
         {
             glm::vec2 a = {vec_lines[i], vec_lines[i + 1]};
@@ -112,7 +111,6 @@ public:
             glm::vec2 p = {point.first, point.second};
             if (check_line(a, b, p))
             {
-                ind = new size_t(i / 4);
                 return std::make_tuple(new size_t(i / 4),
                                        std::pair<int, int>{vec_lines[i], vec_lines[i + 1]},
                                        std::pair<int, int>{vec_lines[i + 2], vec_lines[i + 3]});
@@ -202,7 +200,7 @@ public:
 
     void clear_lines_coord(const std::pair<int, int> &point)
     {
-        for (int i = 0; i < vec_lines.size(); i += 2)
+        for (int i = 0; i < static_cast<int>(vec_lines.size()); i += 2)
         {
             if (point.first == vec_lines[i] && point.second == vec_lines[i + 1])
             {

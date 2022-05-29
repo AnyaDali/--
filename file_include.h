@@ -3,7 +3,11 @@
 
 #include <iostream>
 
+#include <fstream>
+
 #include <map>
+
+#include <thread>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -24,7 +28,7 @@
 
 #include <functional>
 
-#include <windows.h>
+//#include <windows.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
