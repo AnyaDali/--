@@ -79,6 +79,7 @@ public:
                 adj_list[i].emplace_back(std::pair<int *, int>{_vec_ptr[el.second], el.second});
             }
         }
+        return *this;
     }
 
     void paint_the_vertex(size_t i, int val)
@@ -130,7 +131,7 @@ public:
     {
         for (size_t i = 0; i < _vec_ptr.size(); ++i)
         {
-            if (*_vec_ptr[i] == __key)
+            if (*_vec_ptr[i] == static_cast<int>(__key))
                 return i;
         }
         return -1;
@@ -138,15 +139,14 @@ public:
 
     void clear()
     {
-       for(auto & el : _vec_ptr)
-       {
-           delete el;
-       }
+        for (auto &el : _vec_ptr)
+        {
+            delete el;
+        }
 
-       _vec_ptr.clear();
+        _vec_ptr.clear();
 
         adj_list.clear();
-        
     }
 
     ~adj_colors()
